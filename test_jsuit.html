@@ -1,0 +1,138 @@
+<html>
+	<head>
+		<script type="text/javascript" src="./jsuit.js"></script>
+		<script type="text/javascript" src="./jquery-1.5.1.min.js"></script>
+	</head>
+	<body>
+		<div id=container border=1></div>
+		<label for="run">JSUIT tests</label>
+		<button onclick="runTests()">Run Tests</button>
+		<script type="text/javascript">
+			function runTests() {
+				var test_msg = "";
+				var counter = 0;
+				function is(got, expected, msg) {
+					counter++;
+					test_msg += counter + ": " + msg + ": " + (got == expected ? "OK" : "NOK") + "\n";
+					if(got != expected){
+						test_msg += "ERROR:\n\tgot: '" + got + "'\n\texpected: '" + expected + "'\n";
+						return 1;
+					}
+					return 0;
+				}
+				function ok(test, msg) {
+					counter++;
+					//test_msg = test_msg + counter ": " + msg + "\n";
+					test_msg += counter + ": " + msg + ": " + (test ? "OK" : "NOK") + "\n";
+					return test;
+				}
+				var jsuit  = JSUIT.get_instance();
+				var jsuit2 = JSUIT.get_instance();
+
+				var errors = 0;
+
+				is(jsuit, jsuit2, "Testing if 'get_instance()' return the same obj every time");
+				if(! jsuit.is(jsuit, jsuit2, "Testing if 'get_instance()' return the same obj every time")) {
+					errors++;
+				}
+
+				jsuit.ok(true, "test ok()");
+				var got = $("li").last().text();
+				errors += is(got, "2: test ok(): OK # test ok()", "ok(true)");
+
+				jsuit.ok(false, "test ok()");
+				var got = $("li").last().text();
+				errors += is(got, "3: test ok(): NOK # test ok()", "ok(false)");
+
+				jsuit.is(1, 1, "test is()");
+				var got = $("li").last().text();
+				errors += is(got, "4: test is(): OK # test is()", "is(true)");
+
+				jsuit.is(1, 2, "test is()");
+				var got = $("li").last().text();
+				errors += is(got, "5: test is(): NOK # test is()", "is(false)");
+
+				// Another space
+
+				jsuit.set_space("another space");
+
+				jsuit.ok(true, "test ok()");
+				var got = $("li").last().text();
+				errors += is(got, "6: another space: OK # test ok()", "ok(true)");
+
+				jsuit.ok(false, "test ok()");
+				var got = $("li").last().text();
+				errors += is(got, "7: another space: NOK # test ok()", "ok(false)");
+
+				jsuit.is(1, 1, "test is()");
+				var got = $("li").last().text();
+				errors += is(got, "8: another space: OK # test is()", "is(true)");
+
+				jsuit.is(1, 2, "test is()");
+				var got = $("li").last().text();
+				errors += is(got, "9: another space: NOK # test is()", "is(false)");
+
+				// get_instance
+				var jsuit3 = JSUIT.get_instance("another space, the same instance");
+
+				is(jsuit, jsuit3, "Testing if 'get_instance()' return the same obj every time");
+				if(! jsuit.is(jsuit, jsuit3, "Testing if 'get_instance()' return the same obj every time")) {
+					errors++;
+				}
+
+				jsuit3.ok(true, "test ok()");
+				var got = $("li").last().text();
+				errors += is(got, "11: another space, the same instance: OK # test ok()", "ok(true)");
+
+				//
+
+				//alert(errors + " errors...\n" + (errors > 0 ? "Fail" : "OK"));
+
+				jsuit.set_space("pushing tests");
+
+				var test1 = function (){
+					jsuit.ok(true, "test ok()");
+					var got = $("li").last().text();
+					return is(got, "1: pushing tests: OK # test ok()", "ok(true)");
+				}
+				ok(jsuit.push_test(test1), "Pushing a test");
+
+				ok(jsuit.run_tests("pushing tests"), "running the test suit");
+
+				var test2 = function (){
+					jsuit.ok(false, "test ok()");
+					var got = $("li").last().text();
+					return is(got, "2: pushing tests: NOK # test ok()", "ok(false)");
+				}
+				ok(jsuit.push_test(test2), "Pushing a test");
+
+				ok(jsuit.run_tests("pushing tests"), "running the test suit");
+
+				jsuit.set_space("testing enable/disabe tests");
+
+				ok(jsuit.is_enabled(), "Default enable value is true");
+
+				jsuit.disable_test();
+				ok(! jsuit.is_enabled(), "disable_test() changed the enable value to false");
+
+				jsuit.enable_test();
+				ok(jsuit.is_enabled(), "enable_test() changed it back");
+
+				jsuit.disable_test();
+				ok(! jsuit.push_test(function(){return ok(JSUIT.get_instance().ok(true));}), "Trying to push a test when it's disabled");
+
+				ok(! jsuit.run_tests("testing enable/disabe tests"), "Trying to run the test suit when it's disabled");
+
+				jsuit.enable_test();
+				ok(jsuit.push_test(function(){return ok(JSUIT.get_instance().ok(true));}), "Trying to push a test when it's enabled");
+
+				ok(jsuit.run_tests("testing enable/disabe tests"), "Trying to run the test suit when it's enabled");
+
+				alert(test_msg);
+
+				jsuit.enable_test();
+				JSUIT.show_test_menu();
+			}
+		</script>
+	</body>
+</html>
